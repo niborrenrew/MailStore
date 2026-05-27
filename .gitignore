@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environments
+.env
+.venv
+venv/
+env/
+
+# Logs
+*.log
+backup.log
+.log
+
+# Archive
+archive/
+.archive/
+.archive
+
+# Configuration (contains sensitive data)
+config.json
+
+# OS files
+.DS_Store

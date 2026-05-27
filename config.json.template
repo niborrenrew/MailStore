@@ -1,0 +1,19 @@
+{
+  "accounts": [
+    {
+      "email": "ihre_adresse_1@web.de",
+      "password": "ihr_anwendungspasswort_1",
+      "imap_server": "imap.web.de",
+      "imap_port": 993
+    },
+    {
+      "email": "ihre_adresse_2@web.de",
+      "password": "ihr_anwendungspasswort_2",
+      "imap_server": "imap.web.de",
+      "imap_port": 993
+    }
+  ],
+  "backup_dir": "archive",
+  "max_retries": 5,
+  "retry_delay_seconds": 10
+}
