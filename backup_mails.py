@@ -478,8 +478,12 @@ def sync_folder(imap: imaplib.IMAP4_SSL, account_dir: str, imap_folder_name: str
             # Network or IMAP protocol error -> Raise it to trigger a reconnect and retry in the outer loop
             logger.error(f"[{idx}/{len(to_download)}] IMAP/Netzwerkfehler bei UID {uid}: {e}. Breche Ordner-Sync ab für Reconnect...")
             raise
+        except OSError as e:
+            # Local disk/IO error (e.g. SMB disconnect, disk full) -> Raise to abort sync and prevent marking as downloaded
+            logger.error(f"[{idx}/{len(to_download)}] Festplatten-/Netzwerkschreibfehler bei UID {uid}: {e}. Breche Backup ab...")
+            raise
         except Exception as e:
-            # Local/Processing error (e.g. disk write or parsing error) -> Log and skip to avoid infinite retry loops
+            # Local/Processing error for this specific email (e.g. parsing error) -> Log and skip to avoid infinite loops
             logger.error(f"[{idx}/{len(to_download)}] Lokaler Verarbeitungsfehler bei UID {uid} (wird übersprungen): {e}")
             skipped_count += 1
             # Mark it as downloaded so we don't get stuck on this corrupt mail forever
