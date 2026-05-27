@@ -1,15 +1,15 @@
 {
   "accounts": [
     {
-      "email": "ihre_adresse_1@web.de",
-      "password": "ihr_anwendungspasswort_1",
-      "imap_server": "imap.web.de",
+      "email": "your_email_1@example.com",
+      "password": "your_app_specific_password_1",
+      "imap_server": "imap.example.com",
       "imap_port": 993
     },
     {
-      "email": "ihre_adresse_2@web.de",
-      "password": "ihr_anwendungspasswort_2",
-      "imap_server": "imap.web.de",
+      "email": "your_email_2@example.com",
+      "password": "your_app_specific_password_2",
+      "imap_server": "imap.example.com",
       "imap_port": 993
     }
   ],
