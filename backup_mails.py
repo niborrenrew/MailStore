@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Web.de E-Mail Backup Script
-A robust Python utility to incrementally backup emails from multiple Web.de accounts 
+E-Mail Backup Script
+A robust Python utility to incrementally backup emails from multiple mail accounts 
 to a local archive directory using IMAP.
 """
 
@@ -380,6 +380,19 @@ def sync_folder(imap: imaplib.IMAP4_SSL, account_dir: str, imap_folder_name: str
     # Run migration of old {uid}.eml files to the new format if any exist
     if not dry_run:
         migrate_existing_filenames(local_path, logger)
+            
+    # Reconstruct downloaded UIDs from files on disk to prevent duplicates on crash/restart
+    disk_uids = set()
+    if os.path.exists(local_path):
+        for filename in os.listdir(local_path):
+            if filename.endswith(".eml"):
+                match = re.search(r'_uid_(\d+)\.eml$', filename)
+                if match:
+                    disk_uids.add(match.group(1))
+                    
+    # Merge disk UIDs with metadata downloaded UIDs
+    downloaded_set = set(metadata.get("downloaded_uids", [])) | disk_uids
+    metadata["downloaded_uids"] = sorted(list(downloaded_set), key=lambda x: int(x) if x.isdigit() else 0)
             
     # Search for all mail UIDs in folder
     try:
