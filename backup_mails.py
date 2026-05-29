@@ -316,11 +316,10 @@ def reconnect_imap(account: Dict[str, Any], old_imap: Optional[imaplib.IMAP4_SSL
     return connect_and_login(account, max_retries, delay_seconds, logger)
 
 
-def sync_folder(imap: imaplib.IMAP4_SSL, account_dir: str, imap_folder_name: str, delimiter: str, dry_run: bool, logger: logging.Logger) -> bool:
+def sync_folder(imap: imaplib.IMAP4_SSL, local_path: str, imap_folder_name: str, dry_run: bool, logger: logging.Logger) -> bool:
     """
     Synchronizes a single IMAP folder. Downloads only new emails based on UID and UIDVALIDITY.
     """
-    local_path = get_local_folder_path(account_dir, imap_folder_name, delimiter)
     
     # Select folder in Read-Only mode to avoid any modifications on the server
     try:
@@ -553,17 +552,35 @@ def backup_account(account: Dict[str, Any], base_backup_dir: str, max_retries: i
                     continue
                 folders.append((folder_name, delimiter))
                 
-        logger.info(f"{len(folders)} Ordner zum Synchronisieren gefunden.")
+        # Resolve case-insensitive folder path collisions (crucial for SMB/case-insensitive VFS)
+        folders.sort(key=lambda x: x[0])
+        folders_to_sync = []
+        seen_paths = set()
+        for folder_name, delimiter in folders:
+            local_path = get_local_folder_path(account_dir, folder_name, delimiter)
+            lower_path = local_path.lower()
+            if lower_path in seen_paths:
+                # Resolve collision by appending a suffix
+                suffix = 1
+                candidate_path = f"{local_path}_{suffix}"
+                while candidate_path.lower() in seen_paths:
+                    suffix += 1
+                    candidate_path = f"{local_path}_{suffix}"
+                local_path = candidate_path
+            seen_paths.add(local_path.lower())
+            folders_to_sync.append((folder_name, local_path))
+            
+        logger.info(f"{len(folders_to_sync)} Ordner zum Synchronisieren gefunden.")
         
         # Sync each folder with retry mechanisms on disconnect
-        for folder_name, delimiter in folders:
+        for folder_name, local_path in folders_to_sync:
             max_folder_attempts = 10
             attempt = 0
             folder_success = False
             
             while attempt < max_folder_attempts:
                 try:
-                    folder_success = sync_folder(imap, account_dir, folder_name, delimiter, dry_run, logger)
+                    folder_success = sync_folder(imap, local_path, folder_name, dry_run, logger)
                     if folder_success:
                         break
                     else:
